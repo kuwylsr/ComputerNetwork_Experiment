@@ -1,0 +1,9 @@
+HTTP/1.1 200 OK
+Date: Fri, 02 Nov 2018 05:57:05 GMT
+Server: Apache/2.2.22 (Unix) DAV/2 mod_jk/1.2.23
+Last-Modified: Mon, 29 Feb 2016 08:57:12 GMT
+ETag: "680099-0-52ce4d5a3ca00"
+Accept-Ranges: bytes
+Content-Length: 0
+Content-Type: text/css
+

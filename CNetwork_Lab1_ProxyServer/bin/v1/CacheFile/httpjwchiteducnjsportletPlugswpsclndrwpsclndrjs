@@ -1,0 +1,782 @@
+HTTP/1.1 200 OK
+Date: Fri, 02 Nov 2018 05:57:12 GMT
+Server: Apache/2.2.22 (Unix) DAV/2 mod_jk/1.2.23
+Last-Modified: Wed, 15 Nov 2017 07:37:52 GMT
+ETag: "ca0d9d-829e-55e0094bd5400"
+Accept-Ranges: bytes
+Content-Length: 33438
+Content-Type: application/javascript
+
+(function($) {
+
+    var defaultSetting = {
+        dateFormat: "yyyy-MM-dd", // 日历格式
+        title: "2014-2015学年第一学期校历",
+        notes: "<p>这是备注</p>",
+        firstDay: "2014-09-01",
+        lastDay: "2015-01-25",
+        weeksCN: ["\u65e5", "\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d"], // 中文日历星期
+        holiday: {
+            active: true,
+            name: "寒假",
+            end: "2015-03-04"
+        },
+        theme: "style3",
+        themeTpl: null,
+        lunar: true,
+        firstDayOfWeek: 1,
+        ajaxUrl: null,
+        showToday: false,
+        ajaxData: {},
+        eventsJSON: [],
+        eventWrap: '.event-news-list', // 用于显示事件内容的容器，如果存在，那么事件显示在此处
+        eventTpl: '<div class="wpclndr-event-news"><h2><a href="{{ d.url }}" target="_blank">{{ d.title }}</a></h2><p><span class="event-news-filed">Locale：</span>{{ d.locale }}</p><p><span class="event-news-filed">Time：</span>{{ d.time }}</p></div>',
+        eventWrapDate: true
+    };
+    // javascript模板
+    if (!window.laytpl) {
+        ;
+        !function() {
+            "use strict";
+            var f, b = {open: "{{", close: "}}"}, c = {exp: function(a) {
+                    return new RegExp(a, "g")
+                }, query: function(a, c, e) {
+                    var f = ["#([\\s\\S])+?", "([^{#}])*?"][a || 0];
+                    return d((c || "") + b.open + f + b.close + (e || ""))
+                }, escape: function(a) {
+                    return String(a || "").replace(/&(?!#?[a-zA-Z0-9]+;)/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/'/g, "&#39;").replace(/"/g, "&quot;")
+                }, error: function(a, b) {
+                    var c = "tpl Error：";
+                    return"object" == typeof console && console.error(c + a + "\n" + (b || "")), c + a
+                }}, d = c.exp, e = function(a) {
+                this.tpl = a
+            };
+            e.pt = e.prototype, e.pt.parse = function(a, e) {
+                var f = this, g = a, h = d("^" + b.open + "#", ""), i = d(b.close + "$", "");
+                a = a.replace(/[\r\t\n]/g, " ").replace(d(b.open + "#"), b.open + "# ").replace(d(b.close + "}"), "} " + b.close).replace(/\\/g, "\\\\").replace(/(?="|')/g, "\\").replace(c.query(), function(a) {
+                    return a = a.replace(h, "").replace(i, ""), '";' + a.replace(/\\/g, "") + '; view+="'
+                }).replace(c.query(1), function(a) {
+                    var c = '"+(';
+                    return a.replace(/\s/g, "") === b.open + b.close ? "" : (a = a.replace(d(b.open + "|" + b.close), ""), /^=/.test(a) && (a = a.replace(/^=/, ""), c = '"+_escape_('), c + a.replace(/\\/g, "") + ')+"')
+                }), a = '"use strict";var view = "' + a + '";return view;';
+                try {
+                    return f.cache = a = new Function("d, _escape_", a), a(e, c.escape)
+                } catch (j) {
+                    return delete f.cache, c.error(j, g)
+                }
+            }, e.pt.render = function(a, b) {
+                var e, d = this;
+                return a ? (e = d.cache ? d.cache(a, c.escape) : d.parse(d.tpl, a), b ? (b(e), void 0) : e) : c.error("no data")
+            }, f = function(a) {
+                return"string" != typeof a ? c.error("Template not found") : new e(a)
+            }, f.config = function(a) {
+                a = a || {};
+                for (var c in a)
+                    b[c] = a[c]
+            }, f.v = "1.1", "function" == typeof define ? define(function() {
+                return f
+            }) : "undefined" != typeof exports ? module.exports = f : window.laytpl = f
+        }();
+    }
+
+    var style = "style=\"width:" + (100 / 7) + "%; \"";
+
+    var themes = {
+        "style1": "<h1 class=\"wp_sclndr_title\"></h1>" +
+                "<div class=\"wp_sclndr_wrap\">" +
+                "<table class=\"wp_sclndr_table\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">" +
+                "<tr>" +
+                "<td class=\"month-head\"><div class=\"inner-box\">月份</div></td>" +
+                "<td class=\"weeks-head\"><div class=\"inner-box\">周次</div></td>" +
+                "<td class=\"days-head\"><div class=\"inner-box\">星期</div>" +
+                "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">" +
+                "<tr>" +
+                "<td " + style + "><div class=\"inner-box\">一</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">二</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">三</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">四</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">五</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">六</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">日</div></td>" +
+                "</tr>" +
+                "</table>" +
+                "</td>" +
+                "<td class=\"notes-head\"><div class=\"inner-box\">信息</div></td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td class=\"months-body\" valign=\"top\"><div class=\"wp_sclndr_months\"></div></td>" +
+                "<td class=\"weeks-body\" valign=\"top\"><div class=\"wp_sclndr_weeks\"></div></td>" +
+                "<td class=\"days-body\" valign=\"top\"><div class=\"wp_sclndr_days\"></div></td>" +
+                "<td class=\"notes-body\" valign=\"top\"><div class=\"wp_sclndr_notes\"></div></td>" +
+                "</tr>" +
+                "</table>" +
+                "</div>",
+        "style2": "<h1 class=\"wp_sclndr_title\"></h1>" +
+                "<div class=\"wp_sclndr_wrap\">" +
+                "<table class=\"wp_sclndr_table\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">" +
+                "<tr>" +
+                "<td class=\"month-head\"><div class=\"inner-box\">月份</div></td>" +
+                "<td class=\"months-body\" valign=\"top\">" +
+                "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">" +
+                "<tr class=\"wp_sclndr_months\"></tr>" +
+                "</table>" +
+                "</td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td class=\"weeks-head\"><div class=\"inner-box\">周次</div></td>" +
+                "<td class=\"weeks-body\" valign=\"top\">" +
+                "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">" +
+                "<tr class=\"wp_sclndr_weeks\"></tr>" +
+                "</table>" +
+                "</td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td class=\"days-head\" valign=\"top\">" +
+                "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">" +
+                "<tr>" +
+                "<td><div class=\"inner-box\">一</div></td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td><div class=\"inner-box\">二</div></td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td><div class=\"inner-box\">三</div></td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td><div class=\"inner-box\">四</div></td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td><div class=\"inner-box\">五</div></td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td><div class=\"inner-box\">六</div></td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td><div class=\"inner-box\">日</div></td>" +
+                "</tr>" +
+                "</table>" +
+                "</td>" +
+                "<td class=\"days-body\" valign=\"top\">" +
+                "<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">" +
+                "<tr class=\"wp_sclndr_days\"></tr>" +
+                "</table>" +
+                "</td>" +
+                "</tr>" +
+                "</table>" +
+                "</div>" +
+                "<div class=\"wp_sclndr_notes\"></div>",
+        "style3": "<h1 class=\"wp_sclndr_title\"></h1>" +
+                "<div class=\"wp_sclndr_topbar\"><div class=\"wp_month_select\"><a></a><div class=\"wp_sclndr_months\"></div></div><div class=\"wp_sclndr_today\"></div></div>" +
+                "<table class=\"wp_sclndr_table\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">" +
+                "<tr>" +
+                "<td class=\"weeks-head\"><div class=\"inner-box\">周次</div></td>" +
+                "<td class=\"days-head\"><div class=\"inner-box\">星期</div>" +
+                "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">" +
+                "<tr>" +
+                "<td " + style + "><div class=\"inner-box\">一</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">二</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">三</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">四</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">五</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">六</div></td>" +
+                "<td " + style + "><div class=\"inner-box\">日</div></td>" +
+                "</tr>" +
+                "</table>" +
+                "</td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td class=\"weeks-body\" valign=\"top\"><div class=\"wp_sclndr_weeks\"></div></td>" +
+                "<td class=\"days-body\" valign=\"top\"><div class=\"wp_sclndr_days\"></div></td>" +
+                "</tr>" +
+                "</table>" +
+                "<div class=\"wp_sclndr_notes\"></div>"
+    }
+
+    var monthsName = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+    var weeksName = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    var weeksNameCN = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+
+    var getMonthDays = function(Year, Month) {
+        var d = new Date(Year, Month, 0);
+        return d.getDate();
+    }
+
+    var Sclndr = function(element, setting) {
+        this.element = element;
+        this.setting = $.extend(true, {}, defaultSetting, setting);
+        this.events = {};
+        this.setup();
+    };
+
+    Sclndr.prototype.setup = function() {
+
+        var _s = this, el = _s.element;
+
+        if (_s.setting.themeTpl != null) {
+
+            $(el).html(_s.setting.themeTpl);
+        } else {
+
+            $(el).html(themes[_s.setting.theme]).addClass("wp_sclndr_theme_" + _s.setting.theme);
+        }
+        if (_s.setting.theme == "style2") {
+
+            style = "";
+        }
+        $(".wp_sclndr_title", el).html(_s.setting.title);
+        $(".wp_sclndr_notes", el).html(_s.setting.notes);
+        $(".wp_sclndr_today", el).html(_s.curDay());
+        if (_s.setting.eventsJSON.length > 0) {
+            _s.events = _s.jsonToEvents(_s.setting.eventsJSON);
+        }
+
+        var date1 = _s.firstDay(),
+                date2 = _s.getNextMonth(_s.Format(_s.lastDay())).date,
+                lastNum = Date.parse(_s.Format(_s.lastDay(), "yyyy/MM/dd")),
+                lastNum1 = Date.parse(_s.setting.lastDay.replace("-", "/")),
+                weekIndex = 1,
+                holidayWeek = 0,
+                cycleCount = 0;
+
+        do {
+            var year = date1.getFullYear(),
+                    month = date1.getMonth();
+
+            var days = new Date(year, month + 1, 0);
+            _s.getEvents(days);
+            days = days.getDate();
+            var $html = $("<table border=\"0\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" class=\"month-days month-" + (month + 1) + "\" />");
+
+            if (_s.setting.theme == "style2") {
+
+                $html = $("<td class=\"month-days\" />");
+
+            }
+
+            var day1 = 1, day2 = _s.lastDay().getDate();
+            if (year == _s.firstDay().getFullYear() && month == _s.firstDay().getMonth()) {
+                day1 = _s.firstDay().getDate();
+            }
+            var weekNum = 0;
+
+            do {
+                cycleCount++;
+                var $week = $("<tr class=\"week\" />");
+                var weekChild = "<td " + style + "><div></div></td>";
+                if (_s.setting.theme == "style2") {
+                    $week = $("<table border=\"0\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" class=\"week\" />");
+                    weekChild = "<tr><td><div></div></td></tr>";
+                }
+                weekNum++;
+                var isWeek = false;
+                var week;
+                var weekEnd = _s.setting.firstDayOfWeek ? 0 : 6;
+                var weekPlus = _s.setting.firstDayOfWeek ? 1 : 0;
+                for (var i = 0; i < 7; i++) {
+                    $(weekChild).appendTo($week);
+                }
+
+                do {
+                    var date = new Date(year, month, day1);
+                    var dateNum = Date.parse(_s.Format(date, "yyyy/MM/dd"));
+                    var data = _s.Format(date);
+                    var events = _s.events[_s.Format(date, "yyyy-MM")] || {};
+                    week = date.getDay();
+                    var index = _s.setting.firstDayOfWeek ? week - 1 : week;
+                    var classNames = "month-day" + " week-" + weeksName[week];
+
+                    if (dateNum > lastNum1) {
+                        classNames += " holiday";
+                    } else {
+                        isWeek = true;
+                    }
+                    if (day1 < days + 1 && dateNum <= lastNum) {
+                        var lunar = "", hasEvents = "";
+                        if (_s.setting.lunar) {
+                            var lunarDay = _s.lunar(year, month + 1, day1);
+                            lunar += lunarDay.month + "月" + lunarDay.day;
+                        }
+                        if (events[data]) {
+                            if (_s.setting.theme != "style3") {
+                                hasEvents += '<div class="day-hasevents"></div>';
+                            }
+                        }
+                        $week.find("td").eq(index).addClass(classNames).html("<div class=\"day-box\" data-date=\"" + data + "\" data-date-lunar=\"" + lunar + "\">" + hasEvents + day1 + "</div>");
+                    }
+                    day1++;
+                    if (week == weekPlus && cycleCount !== 1)
+                        weekIndex++;
+                } while (week !== weekEnd);
+
+                $week.appendTo($html);
+                if (isWeek) {
+                    if (_s.setting.theme == "style2") {
+                        var weekHTML = "<td class=\"month-" + (month + 1) + "\"><div class=\"week-num\">" + weekIndex + "</div></td>";
+                    } else {
+                        var weekHTML = "<div class=\"week-num month-" + (month + 1) + "\">" + weekIndex + "</div>";
+                    }
+                    $(".wp_sclndr_weeks", el).append(weekHTML);
+                } else {
+
+                    holidayWeek++;
+
+                    if ($(".holiday-name", el).length == 0) {
+                        if (_s.setting.theme == "style2") {
+                            var holidayHTML = "<td><div class=\"holiday-name\">" + _s.setting.holiday.name + "</div></td>";
+                        } else {
+                            var holidayHTML = "<div class=\"holiday-name\"><table border=\"0\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" ><tr><td>" + _s.setting.holiday.name + "</td></tr></table></div>";
+                        }
+                        $(".wp_sclndr_weeks", el).append(holidayHTML);
+                    }
+                }
+                if (day1 > day2 && year == _s.lastDay().getFullYear() && month == _s.lastDay().getMonth())
+                    break;
+
+            } while (day1 < days + 1);
+
+            $(".wp_sclndr_days", el).append($html);
+            var monthName = monthsName[month];
+            var yearMonth = year + "年" + (month + 1) + "月";
+            if (_s.setting.theme == "style2") {
+                var monthsHTML = "<td><div data-dateindex= \"" + year + "/" + (month + 1) + "/01" + "\" title=\"" + yearMonth + "\" data-year=\"" + year + "\" data-month=\"month-" + (month + 1) + "\" class=\"month-name month-weeks-" + weekNum + "\">" + monthName + "</div></td>";
+            } else if (_s.setting.theme == "style3") {
+                var monthsHTML = "<div data-dateindex= \"" + year + "/" + (month + 1) + "/01" + "\" title=\"" + yearMonth + "\" data-year=\"" + year + "\" data-month=\"month-" + (month + 1) + "\" class=\"month-name month-weeks-" + weekNum + "\">" + yearMonth + "</div>";
+            } else {
+                var monthsHTML = "<div data-dateindex= \"" + year + "/" + (month + 1) + "/01" + "\" title=\"" + yearMonth + "\" data-year=\"" + year + "\" data-month=\"month-" + (month + 1) + "\" class=\"month-name month-weeks-" + weekNum + "\"><table border=\"0\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" ><tr><td>" + monthName + "</td></tr></table></div>";
+            }
+            $(".wp_sclndr_months", el).append(monthsHTML);
+
+            month++;
+            if (month > 11) {
+                month = 0;
+                year++;
+            }
+            date1 = new Date(year, month, 1);
+        } while (date1.getMonth() !== date2.getMonth());
+
+        //_s.filterEvents();
+
+        $(".holiday-name", el).addClass('holiday-week-' + holidayWeek);
+        if (_s.setting.theme == "style2") {
+            $(".week", el).wrap('<td/>');
+            $(".month-days", el).wrapInner('<tr/>').wrapInner("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" />");
+        }
+
+        $("[data-date]", el).on("click", function(event) {
+            event.preventDefault();
+            var date = $(this).attr("data-date"),
+                    lunar = $(this).attr("data-date-lunar");
+            $("[data-date]", el).removeClass('selected');
+            $(this).addClass('selected');
+            _s.loadDates(date);
+
+        }).hover(function() {
+            $(this).addClass('hover');
+        }, function() {
+            $(this).removeClass('hover');
+        });
+
+        var $monthSelect = $(".wp_month_select", el);
+        if ($monthSelect.length !== 0) {
+
+            $("a", $monthSelect).on("click", function() {
+
+                $(".wp_sclndr_months", $monthSelect).toggle();
+            });
+            $monthSelect.on("mouseleave", function() {
+
+                $(".wp_sclndr_months", $monthSelect).hide();
+            });
+
+            $(".wp_sclndr_months", $monthSelect).children().hover(function() {
+                $(this).addClass('hover');
+            }, function() {
+                $(this).removeClass('hover');
+            }).on("click", function(event) {
+                event.preventDefault();
+                var name = $(this).text();
+                var target = $(this).attr("data-month");
+                var year = $(this).attr("data-year");
+                var month = target.split("-")[1];
+                var title = $(this).attr("title");
+                $("a", $monthSelect).html(name).attr('title', title);
+                $("a", $monthSelect).attr('date-month', year + "-" + month);
+                $(this).parent().hide();
+                $(".month-days,.week-num", el).hide();
+                $("." + target, el).show();
+                $("." + target, el).find("[data-date]").eq(0).trigger("click");
+                if (_s.setting.theme == "style3") {
+                    _s.filterEvents();
+                }
+            });
+            var today = new Date();
+            var $defaultMonth = $("[data-year=" + today.getFullYear() + "][data-month=month-" + (today.getMonth() + 1) + "]");
+            if ($defaultMonth.length > 0) {
+                $defaultMonth.trigger('click');
+            } else {
+                $(".wp_sclndr_months", $monthSelect).children().eq(0).trigger('click');
+            }
+            if (_s.setting.showToday) {
+                setTimeout(function() {
+                    $('[data-date="' + _s.Format(new Date(), "yyyy-MM-dd") + '"]').trigger("click");
+                }, 500);
+            }
+
+        }
+
+    }
+
+    Sclndr.prototype.firstDay = function() {
+
+        if (this.setting.firstDay !== '') {
+            var firstDay = this.setting.firstDay.split("-");
+            return new Date(parseInt(firstDay[0], 10), parseInt(firstDay[1], 10) - 1, parseInt(firstDay[2], 10));
+        } else {
+            var today = new Date();
+            return new Date(today.getFullYear(), today.getMonth()-1, today.getDate());
+        }
+
+    }
+
+    Sclndr.prototype.lastDay = function() {
+        if (this.setting.lastDay !== '') {
+            var _lastDay = this.setting.holiday.active ? this.setting.holiday.end : this.setting.lastDay,
+                    lastDay = _lastDay.split("-");
+            return new Date(parseInt(lastDay[0], 10), parseInt(lastDay[1], 10) - 1, parseInt(lastDay[2], 10));
+        } else {
+            var today = new Date();
+            return new Date(today.getFullYear(), today.getMonth()-1, today.getDate());
+        }
+    }
+
+    /*农历(1921-2020)*/
+
+    Sclndr.prototype.lunar = function(yy, mm, dd) {
+
+        var CalendarData = new Array(100);
+        var madd = new Array(12);
+        var tgString = "甲乙丙丁戊己庚辛壬癸";
+        var dzString = "子丑寅卯辰巳午未申酉戌亥";
+        var numString = "一二三四五六七八九十";
+        var monString = "正二三四五六七八九十冬腊";
+        var weekString = "日一二三四五六";
+        var sx = "鼠牛虎兔龙蛇马羊猴鸡狗猪";
+        var cYear, cMonth, cDay, TheDate;
+        CalendarData = new Array(0xA4B, 0x5164B, 0x6A5, 0x6D4, 0x415B5, 0x2B6, 0x957, 0x2092F, 0x497, 0x60C96, 0xD4A, 0xEA5, 0x50DA9, 0x5AD, 0x2B6, 0x3126E, 0x92E, 0x7192D, 0xC95, 0xD4A, 0x61B4A, 0xB55, 0x56A, 0x4155B, 0x25D, 0x92D, 0x2192B, 0xA95, 0x71695, 0x6CA, 0xB55, 0x50AB5, 0x4DA, 0xA5B, 0x30A57, 0x52B, 0x8152A, 0xE95, 0x6AA, 0x615AA, 0xAB5, 0x4B6, 0x414AE, 0xA57, 0x526, 0x31D26, 0xD95, 0x70B55, 0x56A, 0x96D, 0x5095D, 0x4AD, 0xA4D, 0x41A4D, 0xD25, 0x81AA5, 0xB54, 0xB6A, 0x612DA, 0x95B, 0x49B, 0x41497, 0xA4B, 0xA164B, 0x6A5, 0x6D4, 0x615B4, 0xAB6, 0x957, 0x5092F, 0x497, 0x64B, 0x30D4A, 0xEA5, 0x80D65, 0x5AC, 0xAB6, 0x5126D, 0x92E, 0xC96, 0x41A95, 0xD4A, 0xDA5, 0x20B55, 0x56A, 0x7155B, 0x25D, 0x92D, 0x5192B, 0xA95, 0xB4A, 0x416AA, 0xAD5, 0x90AB5, 0x4BA, 0xA5B, 0x60A57, 0x52B, 0xA93, 0x40E95);
+        madd[0] = 0;
+        madd[1] = 31;
+        madd[2] = 59;
+        madd[3] = 90;
+        madd[4] = 120;
+        madd[5] = 151;
+        madd[6] = 181;
+        madd[7] = 212;
+        madd[8] = 243;
+        madd[9] = 273;
+        madd[10] = 304;
+        madd[11] = 334;
+
+        function GetBit(m, n) {
+            return (m >> n) & 1;
+        }
+
+        function e2c() {
+            TheDate = (arguments.length != 3) ? new Date() : new Date(arguments[0], arguments[1], arguments[2]);
+            var total, m, n, k;
+            var isEnd = false;
+            var tmp = TheDate.getYear();
+            if (tmp < 1900) {
+                tmp += 1900;
+            }
+            total = (tmp - 1921) * 365 + Math.floor((tmp - 1921) / 4) + madd[TheDate.getMonth()] + TheDate.getDate() - 38;
+
+            if (TheDate.getYear() % 4 == 0 && TheDate.getMonth() > 1) {
+                total++;
+            }
+            for (m = 0; ; m++) {
+                k = (CalendarData[m] < 0xfff) ? 11 : 12;
+                for (n = k; n >= 0; n--) {
+                    if (total <= 29 + GetBit(CalendarData[m], n)) {
+                        isEnd = true;
+                        break;
+                    }
+                    total = total - 29 - GetBit(CalendarData[m], n);
+                }
+                if (isEnd)
+                    break;
+            }
+            cYear = 1921 + m;
+            cMonth = k - n + 1;
+            cDay = total;
+            if (k == 12) {
+                if (cMonth == Math.floor(CalendarData[m] / 0x10000) + 1) {
+                    cMonth = 1 - cMonth;
+                }
+                if (cMonth > Math.floor(CalendarData[m] / 0x10000) + 1) {
+                    cMonth--;
+                }
+            }
+        }
+
+        function GetcDateString() {
+            var lunar = {};
+
+            lunar.year = tgString.charAt((cYear - 4) % 10);
+            lunar.year += dzString.charAt((cYear - 4) % 12);
+            lunar.zodiac = sx.charAt((cYear - 4) % 12);
+
+            if (cMonth < 1) {
+                lunar.LeapMonth = true;
+                lunar.month = monString.charAt(-cMonth - 1);
+            } else {
+                lunar.month = monString.charAt(cMonth - 1);
+            }
+            lunar.day = (cDay < 11) ? "初" : ((cDay < 20) ? "十" : ((cDay < 30) ? "廿" : "三十"));
+            if (cDay % 10 != 0 || cDay == 10) {
+                lunar.day += numString.charAt((cDay - 1) % 10);
+            }
+            return lunar;
+        }
+
+        function GetLunarDay(solarYear, solarMonth, solarDay) {
+            //solarYear = solarYear<1900?(1900+solarYear):solarYear;
+            if (solarYear < 1921 || solarYear > 2020) {
+                return "";
+            } else {
+                solarMonth = (parseInt(solarMonth) > 0) ? (solarMonth - 1) : 11;
+                e2c(solarYear, solarMonth, solarDay);
+                return GetcDateString();
+            }
+        }
+
+        return GetLunarDay(yy, mm, dd);
+    }
+
+    Sclndr.prototype.curDay = function(date) {
+
+        var curday = date || new Date();
+        return this.Format(curday) + " " + weeksNameCN[curday.getDay()];
+    }
+
+    /*
+     格式化日期
+     (new Date()).Format("yyyy-MM-dd hh:mm:ss.S") ==> 2006-07-02 08:09:04.423 
+     (new Date()).Format("yyyy-M-d h:m:s.S")      ==> 2006-7-2 8:9:4.18
+     */
+
+    Sclndr.prototype.Format = function(date, fmt) {
+
+
+        if (!date)
+            var date = new Date();
+        if (!fmt)
+            var fmt = this.setting.dateFormat;
+        var o = {
+            "M+": date.getMonth() + 1,
+            "d+": date.getDate(),
+            "h+": date.getHours(),
+            "m+": date.getMinutes(),
+            "s+": date.getSeconds(),
+            "q+": Math.floor((date.getMonth() + 3) / 3),
+            "S": date.getMilliseconds()
+        };
+        if (/(y+)/.test(fmt))
+            fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt))
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
+
+    }
+
+    /*
+     获取上一个月份日期
+     */
+
+    Sclndr.prototype.getPrevMonth = function(date) {
+
+        var arr = date.split('-');
+        var year = parseInt(arr[0], 10);
+        var month = parseInt(arr[1], 10);
+        var day = parseInt(arr[2], 10);
+        var days = new Date(year, month, 0);
+        days = days.getDate();
+        var year2 = year;
+        var month2 = month - 1;
+        if (month2 == 0) {
+            year2 = year2 - 1;
+            month2 = 12;
+        }
+        var day2 = day;
+        var days2 = new Date(year2, month2, 0);
+        days2 = days2.getDate();
+        if (day2 > days2) {
+            day2 = days2;
+        }
+
+        var prevMonth = new Date(year2, month2 - 1, day2);
+
+        return {
+            date: prevMonth,
+            days: days2
+        };
+    }
+
+    /*
+     获取下一个月份日期
+     */
+    Sclndr.prototype.getNextMonth = function(date) {
+
+        var arr = date.split('-');
+        var year = parseInt(arr[0], 10);
+        var month = parseInt(arr[1], 10);
+        var day = parseInt(arr[2], 10);
+        var days = new Date(year, month, 0);
+        days = days.getDate();
+        var year2 = year;
+        var month2 = month + 1;
+        if (month2 == 13) {
+            year2 = year2 + 1;
+            month2 = 1;
+        }
+        var day2 = day;
+        var days2 = new Date(year2, month2, 0);
+        days2 = days2.getDate();
+        if (day2 > days2) {
+            day2 = days2;
+        }
+
+        var nextMonth = new Date(year2, month2 - 1, day2);
+        return {
+            date: nextMonth,
+            days: days2
+        };
+
+    }
+
+    Sclndr.prototype.getEvents = function(date) {
+
+        var _this = this, eventsIndex = this.Format(date, "yyyy-MM"), dateIndex = this.Format(date, "yyyy-MM-dd");
+
+        if (this.setting.ajaxUrl != null) {
+
+            $.ajax({
+                url: this.setting.ajaxUrl,
+                type: 'GET',
+                dataType: 'json',
+                async: false,
+                data: $.extend(true, {}, {date: eventsIndex}, this.setting.ajaxData)
+
+            })
+                    .done(function(json) {
+                _this.events[eventsIndex] = _this.jsonToEvents(json)[eventsIndex];
+                _this.loadEvents(date);
+            })
+                    .fail(function() {
+                _this.loadEvents(date);
+            });
+        } else {
+            this.loadEvents(date);
+        }
+
+    }
+
+    Sclndr.prototype.jsonToEvents = function(json) {
+        var _this = this, el = this.element, events = {};
+
+        if (json.length > 0) {
+
+            $.each(json, function(index, val) {
+                /* iterate through array or object */
+
+                if (val.date) {
+                    var date = val.date.split("-"),
+                            dateIndex = date[0] + "-" + date[1];
+                    if (!events[dateIndex])
+                        events[dateIndex] = {};
+
+                    if (!events[dateIndex][val.date])
+                        events[dateIndex][val.date] = [];
+
+                    events[dateIndex][val.date].push(val);
+                }
+            });
+        }
+
+        return events;
+    }
+
+    Sclndr.prototype.loadDates = function(date) {
+        // console.log(date);
+        var dates = new Date(Date.parse(date.replace(/-/g, "/")));
+        this.getEvents(dates);
+    }
+
+    Sclndr.prototype.filterEvents = function() {
+        var _this = this, el = this.element;
+        $(".day-box", el).each(function(index, val) {
+            var date = $(this).attr("data-date");
+            var dates = date.split("-");
+            var monthindex = dates[0] + "-" + dates[1];
+            //  alert(_this.events[monthindex]);
+            if (_this.events[monthindex]) {
+                var monthsEvents = _this.events[monthindex];
+                if (monthsEvents[date]) {
+                    var dayEvents = monthsEvents[date];
+                    $(this).addClass("hasevents-day").attr("title", date + " 有" + dayEvents.length + "篇文章");
+                }
+            } else {
+                $(this).removeClass("hasevents-day").attr("title", "");
+            }
+        });
+    }
+
+    Sclndr.prototype.loadEvents = function(dates, events) {
+        var _this = this, eventsIndex = this.Format(dates, "yyyy-MM"), dateIndex = this.Format(dates, "yyyy-MM-dd");
+        var year = dates.getFullYear(),
+                month = dates.getMonth() + 1,
+                day = dates.getDate(),
+                week = this.setting.weeksCN[dates.getDay()];
+
+        $(".wp_sclndr_today", this.element).html(this.curDay(dates));
+        var events = (this.events[eventsIndex] || {})[dateIndex] || [];
+        var $eventWrap = $(this.setting.eventWrap);
+        if (events.length < 1) {
+            return $eventWrap.empty().hide();
+        }
+        $eventWrap.addClass('wpclndr-event-wrap').html(function(html) {
+            var html = "";
+            if (_this.setting.eventWrapDate) {
+                html += '<div class="wpclndr-event-date">' + year + '年' + month + '月' + day + '日' + ' 星期' + week + '</div>';
+            }
+            $.each(events, function(index, val) {
+                /* iterate through array or object */
+                html += laytpl(_this.setting.eventTpl).render(val);
+            });
+            return html;
+        }).show();
+        if (_this.setting.theme == "style3") {
+            _this.filterEvents();
+        }
+    }
+
+    Sclndr.prototype.printNotes = function(notes) {
+        // body...
+        if (notes != '') {
+            $(".wp_sclndr_notes", this.element).html(notes || _s.setting.notes);
+        } else {
+            $(".wp_sclndr_notes", this.element).html(notes);
+        }
+    }
+
+    $.fn.WPsclndr = function(setting) {
+
+        var sclndrs = [];
+        this.each(function() {
+
+            sclndrs.push(new Sclndr(this, setting));
+        });
+        return sclndrs;
+    }
+
+})(jQuery);

@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Date: Fri, 02 Nov 2018 05:57:05 GMT
+Server: Apache/2.2.22 (Unix) DAV/2 mod_jk/1.2.23
+Last-Modified: Wed, 15 Nov 2017 07:37:36 GMT
+ETag: "e20556-1e-55e0093c93000"
+Accept-Ranges: bytes
+Content-Length: 30
+Content-Type: text/css
+
+@import "system_editor.css";

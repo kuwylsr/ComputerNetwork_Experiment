@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Cache-Control: no-cache
+Cache-Control: no-store
+Date: Fri, 02 Nov 2018 05:56:04 GMT
+Pragma: no-cache
+Transfer-Encoding: chunked
+Content-Length: 1
+Content-Type: text/plain;charset=ISO-8859-1
+Expires: Thu, 01 Jan 1970 00:00:00 GMT
+Set-Cookie: name=value; HttpOnly
+X-Powered-By: Servlet/2.5 JSP/2.1
+
+0001
+1
+0000
+

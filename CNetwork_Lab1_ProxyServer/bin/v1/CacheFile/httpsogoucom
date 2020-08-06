@@ -1,0 +1,15 @@
+HTTP/1.1 301 Moved Permanently
+Server: nginx
+Date: Fri, 02 Nov 2018 06:25:08 GMT
+Content-Type: text/html
+Content-Length: 178
+Connection: keep-alive
+Location: http://www.sogou.com/
+
+<html>
+<head><title>301 Moved Permanently</title></head>
+<body bgcolor="white">
+<center><h1>301 Moved Permanently</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>

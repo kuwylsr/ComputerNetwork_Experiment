@@ -1,0 +1,15 @@
+HTTP/1.1 304 Not Modified
+Date: Fri, 02 Nov 2018 05:54:42 GMT
+Server: Apache/2.4.18 (Ubuntu)
+X-Content-Type-Options: nosniff
+Last-Modified: Mon, 17 Sep 2018 12:55:04 GMT
+ETag: "1248-57610ae94c8c3-gzip"
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Content-Type: application/javascript
+X-Varnish: 141687969 140732901
+Age: 88
+Via: 1.1 varnish-v4
+X-Varnish-Cache: HIT
+Connection: keep-alive
+
