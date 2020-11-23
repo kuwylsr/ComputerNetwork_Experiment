@@ -17,17 +17,17 @@
     ~~~
 
 - **命令参数详解**
-    - -t 校验与指定计算机的连接, 知道用户中断
-    - -a 地址解析为计算机名
-    - -n count 发送由count指定数量的 ECHO 报文. 默认值为4
-    - -l size 发送包含由size指定大小的 ECHO 数据包.
-    - -f 指定发送的回显请求消息带有"不分段"标志. 这样数据包就不会被路由器上的网关分段.
-    - -i TTL 将"生存时间"字段设置为TTL指定的数值.
-    - -v TOS 将"服务类型" 字段设置为 TOS 指定的数值.
-    - -r count 在"记录路由" 字段中记录发出报文和返回报文的路由.
-    - -s count 指定由 count 指定的转发次数的时间戳.
-    - -w timeout 指定超时间隔 (ms)
-    - TargetName 指定要校验连接的远程计算机.
+    - **-t** 校验与指定计算机的连接, 知道用户中断
+    - **-a** 地址解析为计算机名
+    - **-n** count 发送由count指定数量的 ECHO 报文. 默认值为4
+    - **-l** size 发送包含由size指定大小的 ECHO 数据包.
+    - **-f** 指定发送的回显请求消息带有"不分段"标志. 这样数据包就不会被路由器上的网关分段.
+    - **-i** TTL 将"生存时间"字段设置为TTL指定的数值.
+    - **-v** TOS 将"服务类型" 字段设置为 TOS 指定的数值.
+    - **-r** count 在"记录路由" 字段中记录发出报文和返回报文的路由.
+    - **-s** count 指定由 count 指定的转发次数的时间戳.
+    - **-w** timeout 指定超时间隔 (ms)
+    - **TargetName** 指定要校验连接的远程计算机.
 
 - **常见出错信息**
     - Unknown host
@@ -63,13 +63,13 @@ TCP/IP 网络中的一个路由跟踪程序, 用来显示数据包到达目标�
 
 - 命令参数详解
 
-    - -d 防止将中间路由器IP地址解析为计算机名
+    - **-d** 防止将中间路由器IP地址解析为计算机名
 
-    - -h maximum_hops 指定在搜索目标的路径中跃点的最大数
+    - **-h** maximum_hops 指定在搜索目标的路径中跃点的最大数
 
-    - -w timeout 指定应答需要等待的时间, 即制定等待 "ICMP已超时" 或 "回显回答" 消息的时间
+    - **-w** timeout 指定应答需要等待的时间, 即制定等待 "ICMP已超时" 或 "回显回答" 消息的时间
 
-    - Target_name 目标主机名称或IP地址.
+    - **Target_name** 目标主机名称或IP地址.
 
 
 ### netstat
@@ -83,21 +83,21 @@ TCP/IP 网络中的一个路由跟踪程序, 用来显示数据包到达目标�
     ~~~
 
 - **命令参数详解**
-    - -a 显示所有有限连接信息列表(ESTABLISHED, 监听连接请求的那些连接LISTENING, 计算机侦听的TCP和UDP端口)
+    - **-a** 显示所有有限连接信息列表(ESTABLISHED, 监听连接请求的那些连接LISTENING, 计算机侦听的TCP和UDP端口)
 
-    - -e 显示以太网统计数据(数据报数量, 总字节数, 错误数, 广播的数量等)
+    - **-e** 显示以太网统计数据(数据报数量, 总字节数, 错误数, 广播的数量等)
 
-    - -n 显示已建立的有效TCP连接, 以数字形式显示地址和端口信息.
+    - **-n** 显示已建立的有效TCP连接, 以数字形式显示地址和端口信息.
 
-    - -o 显示与每个连接相关的所属进行ID
+    - **-o** 显示与每个连接相关的所属进行ID
 
-    - -p protocol 显示由 protocol (tcp,udp,icmp,ip)所指定的协议的连接情况, 若与-s一起使用, 额按协议显示统计信息.
+    - **-p** protocol 显示由 protocol (tcp,udp,icmp,ip)所指定的协议的连接情况, 若与-s一起使用, 额按协议显示统计信息.
 
-    - -r 显示路由表信息
+    - **-r** 显示路由表信息
 
-    - -s 按照不同协议显示其统计的信息
+    - **-s** 按照不同协议显示其统计的信息
 
-    - -v 显示正在进行的工作
+    - **-v** 显示正在进行的工作
 
     - Interval 每隔 interval 秒重新显示一次选定的信息.
 
@@ -115,13 +115,13 @@ TCP/IP 网络中用于将IP地址映射为网卡物理地址(MAC地址)的一个
 
 - **命令参数详解**
 
-    - –s inet_addr eth_addr[if_addr]
+    - **–s inet_addr eth_addr[if_addr]**
     向ARP缓存添加可以将IP地址inet_addr解析为物理地址eth_addr的静态表项
 
-    - –d inet_addr [if_addr]
+    - **–d inet_addr [if_addr]**
     删除指定的IP地址项，此处inet_addr代表IP地址，对于指定的端口要删除表中的某项，使用if_addr参数
 
-    - –a [inet_addr] [-N if_addr]
+    - **–a [inet_addr] [-N if_addr]**
     显示所有端口的当前ARP缓存表。
 
 ### ipconfig
@@ -135,18 +135,18 @@ TCP/IP 网络中用于将IP地址映射为网卡物理地址(MAC地址)的一个
     ~~~
 
 - **命令参数详解**
-    - /all 显示所有适配器的完整TCP/IP配置信息，若无此参数则只显示IP地址，子网掩码和各个适配器默认网关值。
-    - /renew [adapter] 更新所有适配器DHCP配置参数
+    - **/all** 显示所有适配器的完整TCP/IP配置信息，若无此参数则只显示IP地址，子网掩码和各个适配器默认网关值。
+    - **/renew** [adapter] 更新所有适配器DHCP配置参数
 
-    - release [adapter] 发送Dhcprelease消息到DHCP服务器，以释放当前DHCP配置并丢弃IP地址配置。
+    - **release** [adapter] 发送Dhcprelease消息到DHCP服务器，以释放当前DHCP配置并丢弃IP地址配置。
 
-    - /flushdns 清理并重设DNS客户解析器缓存内容
+    - **/flushdns** 清理并重设DNS客户解析器缓存内容
 
-    - /displaydns 显示DNS客户解析器缓存内容，包括从本地主机文件预装载的记录以及由域名解析获得的任何资源记录。
+    - **/displaydns** 显示DNS客户解析器缓存内容，包括从本地主机文件预装载的记录以及由域名解析获得的任何资源记录。
 
-    - /registerdns 初始化计算机上配置的DNS名称和IP地址的手工动态注册
-    - /showclassid Adapter 显示指定适配器的DHCP类别ID
-    - /setclassid Adapter 配置特定适配器的DHCP类别ID
+    - **/registerdns** 初始化计算机上配置的DNS名称和IP地址的手工动态注册
+    - **/showclassid** Adapter 显示指定适配器的DHCP类别ID
+    - **/setclassid** Adapter 配置特定适配器的DHCP类别ID
 
 ## 网络配置文件
 
@@ -171,3 +171,35 @@ C:\WINDOWS\system32\drivers\etc
 
 - **作用**
 进行 NETBIOS 名静态解析的. 将 NETBIOS名和IP地址对应起来, 功能类似于 DNS, 只不过DNS是将 域名/主机名和IP对应. 解决广播方式无法跨越路由器的局限的, LMHOSTS文件与广播方式相辅相成实现网段内外的全通信.
+
+- LMHOSTS 文件的部分内容
+    ~~~vim
+    #   
+    # The following example illustrates all of these extensions:
+    #
+    # 102.54.94.97 rhino #PRE #DOM:networking #net group's DC
+    # 102.54.94.102 "appname \0x14" #special app server
+    # 102.54.94.123 popular #PRE #source server
+    # 102.54.94.117 localsrv #PRE #needed for the include
+    #
+    # #BEGIN_ALTERNATE
+    # #INCLUDE \\localsrv\public\lmhosts
+    # #INCLUDE \\rhino\public\lmhosts
+    # #END_ALTERNATE
+    #
+    # end of this file.
+    ~~~
+
+    - 与HOSTS的不同点: LMHOSTS文件中可以指定执行某种特殊功能的特定的命令.
+    - #PRE: 这个命令放在IP地址和名称后面, 表示当系统启动时, 先将这个地址预先载入(Preload)到Cache(内存高速缓存)中.
+    - #DOM: domain_name 这个命令放在计算机 NetBIOS名字之后, 表明它是一个域控制器(Domain Controller)
+    - #INCLUDE<Filename> 这个命令表明将 filename 所指向的另一个LMHOSTS文件加入本文件中, 系统从改文件中读取IP地址和NetBIOS名字.
+    - #BEGIN_ALTERNATE 和 #END_ALTERNATE 命令 必须配套使用, 它们的作用是可以在一个LMHOSTS文件中指定多个 #INCLUDE 命令.
+
+
+- **工作过程**
+    - 系统启动时将LMHOSTS文件中被设为 #PRE 的地址和及其名预载到内存中.
+    - 客户端发出查询请求时, 先在Cache中检查是否已存在目的IP地址.
+    - 如果在 Cache 中没有找到, 系统改用广播的方式再次查找.
+    - 如果广播查询还是没有找到,就得用到LIMHOSTS文件了.
+    - 如果找到了,则把它也添加到Cache中保存起来,如果还是没有找到,发送错误信息到客户端
